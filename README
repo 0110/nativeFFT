@@ -1,0 +1,5 @@
+Requirements:
+- OpenAl
+
+Installation Command for debian:
+ aptitude install libopenal-dev
