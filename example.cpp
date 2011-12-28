@@ -2,15 +2,17 @@
 #include <AL/alc.h>
 #include <iostream>
 #include <stdio.h>
+#include <inttypes.h>
 #include <fftw3.h>
 
 using namespace std;
 
 const int SRATE = 44100;
 const int SSIZE = 1024;
+#define BSIZE	22050	/* Buffer size */
 #define SAMPLES 1024
 
-ALbyte buffer[22050];
+ALbyte buffer[BSIZE];
 ALint sample;
 
 int main(int argc, char *argv[]) {
@@ -41,35 +43,41 @@ int main(int argc, char *argv[]) {
     ALCdevice *device = alcCaptureOpenDevice(szDefaultCaptureDevice, SRATE , AL_FORMAT_STEREO16, SAMPLES);
     ALenum errno = alGetError();
     if (errno != AL_NO_ERROR) {
-	switch(errno) {
-	case ALC_INVALID_VALUE:
-		cout << "Invalide Value";
-		break;
+		switch(errno) {
+		case ALC_INVALID_VALUE:
+			cout << "Invalide Value";
+			break;
 		case ALC_OUT_OF_MEMORY:
 			cout << "Out of memory";
 			break;
-			default:
+		default:
 			cout << "Unkown error";
-	}
-	cout << endl;
-	printf( "There was an error while opening device! Error number: %s\n", alGetString(errno));
-		
-
+		}
     }
 
-fftw_complex *out;
-double* in = (double*) fftw_malloc(sizeof(double)*SAMPLES);
+	fftw_complex *out;
+	double* fft_in = (double*) fftw_malloc(sizeof(double)*SAMPLES);
 
-out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*SAMPLES/2+1);
+	out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*SAMPLES/2+1);
 
-fftw_plan p = fftw_plan_dft_r2c_1d(SAMPLES, in, out, FFTW_ESTIMATE);
+	fftw_plan p = fftw_plan_dft_r2c_1d(SAMPLES, fft_in, out, FFTW_ESTIMATE);
 
     alcCaptureStart(device);
-while(true) {
-        alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);
-        alcCaptureSamples(device, (ALCvoid *)buffer, sample);
-        
-}
+	
+	uint16_t* pBuffer16 = (uint16_t *) buffer;
+	while(true) {
+		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);
+		alcCaptureSamples(device, (ALCvoid *)buffer, sample);
+		for(int i=0; i < (BSIZE >> 1); i+=2) {
+			double value = (double) (pBuffer16[i] + pBuffer16[i+1]) / 2; // Linken und rechten Kanal addieren
+			value = value / 32768;
+
+			fft_in[i/2] = value;
+		}
+
+		fftw_execute(p);
+
+	}
     return 0;
 }
 
