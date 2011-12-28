@@ -41,7 +41,7 @@ int main(int argc, char *argv[]) {
     const char *szDefaultCaptureDevice = alcGetString(NULL,ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER); 
     cout << szDefaultCaptureDevice << endl;
 
-    ALCdevice *device = alcCaptureOpenDevice(szDefaultCaptureDevice, SRATE , AL_FORMAT_STEREO16, SAMPLES);
+    ALCdevice *device = alcCaptureOpenDevice(szDefaultCaptureDevice, SRATE ,  AL_FORMAT_MONO16, SAMPLES);
     ALenum errno = alGetError();
     if (errno != AL_NO_ERROR) {
 		switch(errno) {
@@ -66,7 +66,12 @@ int main(int argc, char *argv[]) {
     alcCaptureStart(device);
 	
 	uint16_t* pBuffer16 = (uint16_t *) buffer;
-	double* pOutAsDouble = (double*) out;
+	uint64_t counter = 0;
+	FILE *fp = fopen("/tmp/daimudda.dump", "rw+");
+	if (fp == NULL) {
+		cout << "nooooooooooooooooooooo" << endl;
+		return(666);
+	}
 	
 	while(true) {
 		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);
@@ -76,10 +81,13 @@ int main(int argc, char *argv[]) {
 		if (sample > 0)
 		{
 			cout << sample <<endl;
-		   	for(int i=0; i < sample; i+=2) {
-			  	double value = (double) (pBuffer16[i] + pBuffer16[i+1]) / 2; // Linken und rechten Kanal addieren
+		   	for(int i=0; i < sample; i++) {
+				fprintf (fp, "%ld\t%d\n", counter++, pBuffer16[i]);
+				
+			  	double value = (double) pBuffer16[i]; 
 				value = value / 32768; /* 2^16/ 2  da pro Kanal 16bit aufloesung */
 
+				printf("%lf ;", value);
 				fft_in[i/2] = value;
 				cout << "FFT:";
 				for (int i=0; i < SAMPLES/2+1; i++)
@@ -88,10 +96,12 @@ int main(int argc, char *argv[]) {
 				}
 				cout << endl;
 			}
-
+			cout << endl;
 			fftw_execute(p);
+
+			fflush(fp);
 		}
-		
+		 
 		usleep(1000);
 	}
     return 0;
