@@ -17,6 +17,8 @@ int main(int argc, char *argv[]) {
 	// retrieve all old errors
 	alGetError();
 
+	printf( "There was an error while opening device! Error number: %d\n", alGetError());
+
 	// Enumerate OpenAL devices
 	if (alcIsExtensionPresent (NULL, (const ALCchar *) "ALC_ENUMERATION_EXT") == AL_TRUE)
 	{
@@ -32,9 +34,10 @@ int main(int argc, char *argv[]) {
 		cout << "OpenAL device enumeration isn't available." << endl;
 	}
 
-	 const char *szDefaultCaptureDevice = alcGetString(NULL, 
-ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER); 
-cout << szDefaultCaptureDevice << endl;
+    /* Display default device */
+    const char *szDefaultCaptureDevice = alcGetString(NULL,ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER); 
+    cout << szDefaultCaptureDevice << endl;
+
     ALCdevice *device = alcCaptureOpenDevice(szDefaultCaptureDevice, SRATE , AL_FORMAT_STEREO16, SAMPLES);
     ALenum errno = alGetError();
     if (errno != AL_NO_ERROR) {
@@ -62,12 +65,11 @@ out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*SAMPLES/2+1);
 fftw_plan p = fftw_plan_dft_r2c_1d(SAMPLES, in, out, FFTW_ESTIMATE);
 
     alcCaptureStart(device);
-while(1) {
+while(true) {
         alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);
         alcCaptureSamples(device, (ALCvoid *)buffer, sample);
         
-	
-
+}
     return 0;
 }
 
