@@ -11,9 +11,8 @@
 using namespace std;
 
 const int SRATE = 44100;
-const int SSIZE = 1024;
-#define BSIZE	22050	/* Buffer size */
-#define SAMPLES 1024
+const int BSIZE = 22050;	/* Buffer size */
+const int SAMPLES = 512	;
 
 ALbyte buffer[BSIZE];
 ALint sample;
@@ -75,13 +74,19 @@ int main(int argc, char *argv[]) {
 		cout << "nooooooooooooooooooooo" << endl;
 		return(666);
 	}
+
+	/* -------------------------- ncurses -------------------------- */
+	initscr();			/* Start curses mode 		  */
+	printw("Hello World !!!");	/* Print Hello World		  */
+	refresh();			/* Print it on to the real screen */
 	
 	while(true) {
 		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);		
 		//printf("Sample length: %d\tAim:%d\n", sample, SAMPLES);
+		clear();
+		printw("Sample length: %d\tAim:%d\n", sample, SAMPLES);
 		if (sample >= SAMPLES)
 		{
-			printf("---------------------------- \n"); /* a sample is processed */
 			alcCaptureSamples(device, (ALCvoid *)buffer, SAMPLES);
 			
 		   	for(int i=0; i < SAMPLES; i++) {
@@ -95,21 +100,16 @@ int main(int argc, char *argv[]) {
 			fftw_execute(p);
 
 			fflush(fp);
-
-			clear();
-			for(int i=0; i < SAMPLES/2; i++){
-				printf("[");
-				for(int j=0; j < (int) abs(out[i][0]); j++)
-				{
-					printf("=");
-				}
-				printf("\n");
-				
+			
+			for(int i=0; i < SAMPLES/2; i+=4){
+				addnstr("*", (int) abs(out[i][0]));				
 			}
 		}
-		 
+		refresh();	/* update the UI */
 		usleep(4000);
 	}
+
+	endwin();			/* End curses mode		  */
     return 0;
 }
 
