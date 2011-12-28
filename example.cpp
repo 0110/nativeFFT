@@ -81,10 +81,11 @@ int main(int argc, char *argv[]) {
 			alcCaptureSamples(device, (ALCvoid *)buffer, SAMPLES);
 			
 		   	for(int i=0; i < SAMPLES; i++) {
-				fprintf (fp, "%ld\t%d\n", counter++, pBuffer16[i]);
+				fprintf (fp, "%lld\t%d\n", counter++, pBuffer16[i]);
 
 				printf("%lf ;", value);
 				fft_in[i/2] = value;
+				
 				cout << "FFT:";
 				for (int i=0; i < SAMPLES/2+1; i++)
 				{
@@ -92,7 +93,6 @@ int main(int argc, char *argv[]) {
 				}
 				cout << endl;
 			}
-			
 			fftw_execute(p);
 
 			fflush(fp);
