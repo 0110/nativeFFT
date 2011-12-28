@@ -9,9 +9,7 @@
 #define _USE_MATH_DEFINES
 #include <math.h>
 
-using namespace std;
-
-const int SRATE = 44100;
+#define SRATE	44100
 #define BSIZE	22050	/* Buffer size */
 #define SAMPLES 512
 
@@ -21,12 +19,21 @@ const int SRATE = 44100;
 ALbyte buffer[BSIZE];
 ALint sample;
 
+
+double max(double a, double b)
+{
+	if (a > b)
+		return a;
+	else
+		return b;
+}
+
 /*
  * Reduce the amount of data!
  * @param[in] 	plainFFT	The captured sample, that was modified by the FFT
  * @param[out]	compressed	There only a compressed data is returned to work on.
  */
-void printFrequencies (double *plainFFT, double *compressed)
+void convertData(double *plainFFT, double *compressed)
 {
     int i = 0, compressedIndex = 0;
 	double c, s, r, value = 0.0;
@@ -35,7 +42,7 @@ void printFrequencies (double *plainFFT, double *compressed)
 	c = plainFFT[2*i]/SAMPLES;
 	r = log(sqrt(c*c));
 	/* store the first captured value */
-	value += r;
+	value = max(value, r);
 	
 //	printf("%f\n", r); //TODO debug code
 	
@@ -44,9 +51,9 @@ void printFrequencies (double *plainFFT, double *compressed)
 		c = 2*plainFFT[2*i]/SAMPLES;
 		s = -2*plainFFT[2*i+1]/SAMPLES;
  	    r = log(sqrt(c*c + s*s));
-		value += r; /* add the actual value */
+		value = max(value, r); /* add the actual value */
 		if (i % COMPRESSION_FACTOR == 0) {
-			compressed[compressedIndex++] = value / COMPRESSION_FACTOR;
+			compressed[compressedIndex++] = value;
 			value = 0;
 		}
 //		printf("%f\n", r); /TODO debug code
@@ -56,11 +63,11 @@ void printFrequencies (double *plainFFT, double *compressed)
 	if ( SAMPLES % 2 == 0 ) {
 		c = plainFFT[2*i]/SAMPLES;
 		r = log(sqrt(c*c));
-		value += r;
+		value = max(value, r); /* add the actual value */
 //		printf("%f\n", r); //TODO debug code
 	}
 	// Add the last
-	compressed[compressedIndex++] = (value / (i % COMPRESSION_FACTOR));
+	compressed[compressedIndex++] = value;
 }
 	
 int main(int argc, char *argv[]) {
@@ -75,18 +82,18 @@ int main(int argc, char *argv[]) {
 		const char *s = (const char *) alcGetString(NULL, ALC_CAPTURE_DEVICE_SPECIFIER);
 		while (*s != '\0')
 		{
-			cout << "OpenAL available device: " << s << endl;
+			printf("OpenAL available device: %s\n", s);
 			while (*s++ != '\0');
 		}
 	}
 	else
 	{
-		cout << "OpenAL device enumeration isn't available." << endl;
+		printf("OpenAL device enumeration isn't available.");
 	}
 
     /* Display default device */
     const char *szDefaultCaptureDevice = alcGetString(NULL,ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER); 
-    cout << szDefaultCaptureDevice << endl;
+    printf("%s\n", szDefaultCaptureDevice);
 
 	/* Here the outputdevice could be specified */
     ALCdevice *device = alcCaptureOpenDevice(NULL, SRATE ,  AL_FORMAT_MONO16, SAMPLES);
@@ -94,13 +101,13 @@ int main(int argc, char *argv[]) {
     if (errno != AL_NO_ERROR) {
 		switch(errno) {
 		case ALC_INVALID_VALUE:
-			cout << "Invalide Value";
+			printf("Invalide Value\n");
 			break;
 		case ALC_OUT_OF_MEMORY:
-			cout << "Out of memory";
+			printf("Out of memory\n");
 			break;
 		default:
-			cout << "Unkown error";
+			printf("Unkown error\n");
 		}
     }
 
@@ -120,7 +127,7 @@ int main(int argc, char *argv[]) {
 	uint64_t counter = 0;
 	FILE *fp = fopen("/tmp/daimudda.dump", "w+");
 	if (fp == NULL) {
-		cout << "nooooooooooooooooooooo" << endl;
+		printf("nooooooooooooooooooooo\n");
 		return(666);
 	}
 
@@ -147,7 +154,7 @@ int main(int argc, char *argv[]) {
 
 			fflush(fp);
 			
-			printFrequencies ((double* )out, compressed); 
+			convertData ((double*)out, compressed); 
 			printf("The compressed size is %d (compressing %d), the orignal was %d\n", COMPRESSED_SIZE, COMPRESSION_FACTOR, SAMPLES);
 			
 			for(int i=0; i < COMPRESSED_SIZE; i++) {

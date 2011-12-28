@@ -1,4 +1,4 @@
-CC=g++
+CC=gcc
 
 TARGET = example
 CFLAGS = -Wall
