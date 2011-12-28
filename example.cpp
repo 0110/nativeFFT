@@ -85,8 +85,8 @@ int main(int argc, char *argv[]) {
 		   	for(int i=0; i < SAMPLES; i++) {
 				fprintf (fp, "%lld\t%d\n", counter++, pBuffer16[i]);
 
-				/* store the value in the inbuffer*/
-				value = (double) pBuffer16[i];
+				/* store the value in the inbuffer */
+				value = pBuffer16[i];
 				fft_in[i] = value; //FIXME warum war da nen /2 ???
 /*
 				printf("%lf ;", value);
