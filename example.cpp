@@ -28,28 +28,39 @@ ALint sample;
  */
 void printFrequencies (double *plainFFT, double *compressed)
 {
-    int i = 0;
-	double c, s, r;
+    int i = 0, compressedIndex = 0;
+	double c, s, r, value;
     
-	/* print first line seperatly */
+	/* handle first line seperatly */
 	c = plainFFT[2*i]/SAMPLES;
 	r = log(sqrt(c*c));
-	printf("%f\n", r);
+	/* store the first captured value */
+	value = r;
+	
+//	printf("%f\n", r); //TODO debug code
 	
 	
     for ( i=1; 2*i < SAMPLES; i++ ) {
 		c = 2*plainFFT[2*i]/SAMPLES;
 		s = -2*plainFFT[2*i+1]/SAMPLES;
  	    r = log(sqrt(c*c + s*s));
-		printf("%f\n", r);
+		value += r; /* add the actual value */
+		if (i % COMPRESSION_FACTOR == 0) {
+			compressed[compressedIndex++] = value / COMPRESSION_FACTOR;
+			value = 0;
+		}
+//		printf("%f\n", r); /TODO debug code
 	}
 
-	/* print last line seperatly */
+	/* handle last line seperatly */
 	if ( SAMPLES % 2 == 0 ) {
 		c = plainFFT[2*i]/SAMPLES;
 		r = log(sqrt(c*c));
-		printf("%f\n", r);
+		value += r;
+//		printf("%f\n", r); //TODO debug code
 	}
+	// Add the last
+	compressed[compressedIndex++] = (value / (i % COMPRESSION_FACTOR));
 }
 	
 int main(int argc, char *argv[]) {
@@ -94,9 +105,9 @@ int main(int argc, char *argv[]) {
 
 	/* prepare everything for the FFT */
 	fftw_complex *out;
-	double* compressed = (double*) malloc(sizeof(double) * COMPRESSED_SIZE);
 	double value;
 	double* fft_in = (double*) fftw_malloc(sizeof(double)*SAMPLES);
+	double* compressed = (double*) malloc(sizeof(double) * COMPRESSED_SIZE);
 
 	out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*SAMPLES/2+1);
 
@@ -135,6 +146,11 @@ int main(int argc, char *argv[]) {
 			fflush(fp);
 			
 			printFrequencies ((double* )out, compressed); 
+
+			for(int i=0; i < COMPRESSED_SIZE; i++) {
+				printf("%lf\n", compressed[i]);
+			}
+			
 			return 0; /* we have one sample captured... exit */
 		}
 		usleep(4000);
