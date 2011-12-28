@@ -92,9 +92,9 @@ int main(int argc, char *argv[]) {
 
 			double** pOut = (double**) out;
 
-			for(int i=0; i < SAMPLES/2; i++){
+			/*for(int i=0; i < SAMPLES/2; i++){
 				printf("%lf ", out[i][0]);
-			}
+			}*/
 
 			cout << endl;
 			cout << endl;
