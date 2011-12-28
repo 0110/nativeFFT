@@ -2,7 +2,7 @@ CC=g++
 
 #CFLAGS = -I.
 #DEPS = hellomake.h
-LDFLAGS = -lopenal
+LDFLAGS = -lopenal -lfftw3 -lm
 OBJ = example.o
 
 %.o: %.c $(DEPS)

@@ -1,5 +1,6 @@
 Requirements:
 - OpenAl
+- FFTW
 
 Installation Command for debian:
- aptitude install libopenal-dev
+ aptitude install libopenal-dev fftw3-dev

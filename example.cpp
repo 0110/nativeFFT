@@ -3,12 +3,16 @@
 #include <iostream>
 #include <stdio.h>
 #include <inttypes.h>
+#include <fftw3.h>
+
 using namespace std;
 
 const int SRATE = 44100;
 const int SSIZE = 1024;
+#define BSIZE	22050	/* Buffer size */
+#define SAMPLES 1024
 
-ALbyte buffer[22050];
+ALbyte buffer[BSIZE];
 ALint sample;
 
 int main(int argc, char *argv[]) {
@@ -32,44 +36,41 @@ int main(int argc, char *argv[]) {
 		cout << "OpenAL device enumeration isn't available." << endl;
 	}
 
-	/* Display default device */
-	const ALCchar *defaultDevice = alcGetString(NULL, ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER);
-	cout << "Default capture device " << defaultDevice << endl;
-	
-    ALCdevice *device = alcCaptureOpenDevice(defaultDevice, SRATE, AL_FORMAT_STEREO16, SSIZE);
-	if (device == NULL) {
-		cout << "Could not create a capture device" << endl;
-	}
-	
-    alcCaptureStart(device);
-	int index = 0;
-	int zeros;
-	
-	uint16_t* pBuffer16 = (uint16_t *) buffer;
-	doule[] value;
-    while (true) {
-        alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei) sizeof(ALint), &sample);
-        alcCaptureSamples(device, (ALCvoid *)buffer, sample);
-		printf("%4d ", index);
-		for(int i=0; i < 22050; i++) {
-			if (buffer[i] != 0)
-				zeros++;
-			
-			left = (uint16_t*) buffer+(i*4);
-			right = (uint16_t*) buffer+(i*4) + 2;
-			value = ( *left + *right )
-	//		printf(" %2x", buffer[i]);
-        	// ... do something with the buffer 
+    /* Display default device */
+    const char *szDefaultCaptureDevice = alcGetString(NULL,ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER); 
+    cout << szDefaultCaptureDevice << endl;
+
+    ALCdevice *device = alcCaptureOpenDevice(szDefaultCaptureDevice, SRATE , AL_FORMAT_STEREO16, SAMPLES);
+    ALenum errno = alGetError();
+    if (errno != AL_NO_ERROR) {
+		switch(errno) {
+		case ALC_INVALID_VALUE:
+			cout << "Invalide Value";
+			break;
+		case ALC_OUT_OF_MEMORY:
+			cout << "Out of memory";
+			break;
+		default:
+			cout << "Unkown error";
 		}
-//		printf("\n");
-		printf("zeros %d\n", zeros);
-		zeros=0;
-		index++;
     }
 
-    alcCaptureStop(device);
-    alcCaptureCloseDevice(device);
+	fftw_complex *out;
+	double* in = (double*) fftw_malloc(sizeof(double)*SAMPLES);
 
+	out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*SAMPLES/2+1);
+
+	fftw_plan p = fftw_plan_dft_r2c_1d(SAMPLES, in, out, FFTW_ESTIMATE);
+
+    alcCaptureStart(device);
+	
+	uint16_t* pBuffer16 = (uint16_t *) buffer;
+	double value[BSIZE];
+	while(true) {
+		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);
+		alcCaptureSamples(device, (ALCvoid *)buffer, sample);
+		
+	}
     return 0;
 }
 
