@@ -18,34 +18,30 @@ const int SSIZE = 1024;
 ALbyte buffer[BSIZE];
 ALint sample;
 
-void printKoeff ( int i, double c, double s )
-{
-    double r = log(sqrt(c*c + s*s));
-    double phi = 0;
-	double f = (i * 44100.0 )/ SAMPLES;
-    
-   // printf ( "%7.1f\t%13.6f %13.6f %13.6f", f, c, s, r);
-	 printf ( "%f\t%f", f, r );
-/*
-	if (r>0.000001) {
-	phi = atan2(s,c) * ( 180 / M_PI );
-        printf ( " %10.3f", phi );
-    }*/
-    printf("\n");
-}
-
 void printFrequencies ( int n, double *out )
 {
     int i = 0;
+	double c, s, r;
     
-    //printf("%5s\t%13s %13s %13s %10s\n","i", "cos", "sin", "Amplitude", "Phase" );
-	printf("%s\t%s\n","i","Amplitude" );
-    printKoeff (0, out[0]/n, 0 );
+	/* print first line seperatly */
+	c = out[2*i]/n;
+	r = log(sqrt(c*c));
+	printf("%f\n", r);
+	
+	
     for ( i=1; 2*i<n; i++ ) {
-		printKoeff (i, 2*out[2*i]/n, -2*out[2*i+1]/n);
+		c = 2*out[2*i]/n;
+		s = -2*out[2*i+1]/n;
+ 	    r = log(sqrt(c*c + s*s));
+		printf("%f\n", r);
 	}
-    if ( n % 2 == 0 )
-	printKoeff (i, out[2*i]/n, 0 );
+
+	/* print last line seperatly */
+	if ( n % 2 == 0 ) {
+		c = out[2*i]/n;
+		r = log(sqrt(c*c));
+		printf("%f\n", r);
+	}
 }
 	
 int main(int argc, char *argv[]) {
@@ -115,29 +111,21 @@ int main(int argc, char *argv[]) {
 		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);		
 		//printf("Sample length: %d\tAim:%d\n", sample, SAMPLES);
 		mvprintw(0,0,"Sample amount: %d\tAim:%d\n", sample, SAMPLES);
-//		if (sample >= SAMPLES)
-		if (sample > (SAMPLES >> 1)) /* only wait for half of the samples */
+		if (sample >= SAMPLES)
 		{
-			alcCaptureSamples(device, (ALCvoid *)buffer, (SAMPLES >> 1));
+			alcCaptureSamples(device, (ALCvoid *)buffer, SAMPLES);
 			
-		   	for(int i=0; i < (SAMPLES >> 1); i++) {
+		   	for(int i=0; i < SAMPLES; i++) {
 				fprintf (fp, "%lld\t%d\n", counter++, pBuffer16[i]);
 
 				/* store the value in the inbuffer */
 				value = (double) pBuffer16[i];
-				fft_in[i] = value; //FIXME warum war da nen /2 ???
+				fft_in[i] = value;
 
 			}
 			fftw_execute(p);
 
 			fflush(fp);
-			/*
-			for(int i=0, row=0; i < SAMPLES/2; i+=4, row++){
-				for(int j=0; j < (int) abs(out[i][0]); j++) {
-					mvprintw(j, row, "*");
-				}
-//					printw("Sample length: %d", abs(out[i][0]));
-			}*/
 			
 			printFrequencies ( SAMPLES, (double* )out ); 
 		}
