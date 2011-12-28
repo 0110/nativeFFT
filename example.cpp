@@ -65,7 +65,7 @@ int main(int argc, char *argv[]) {
 
     alcCaptureStart(device);
 	
-	uint16_t* pBuffer16 = (uint16_t *) buffer;
+	int16_t* pBuffer16 = (int16_t *) &buffer;
 	uint64_t counter = 0;
 	FILE *fp = fopen("/tmp/daimudda.dump", "rw+");
 	if (fp == NULL) {
@@ -75,24 +75,30 @@ int main(int argc, char *argv[]) {
 	
 	while(true) {
 		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);
-		alcCaptureSamples(device, (ALCvoid *)buffer, sample);
 		
-		if (sample > 0)
+		if (sample >= SAMPLES)
 		{
-			cout << sample <<endl;
-		   	for(int i=0; i < sample; i++) {
+			alcCaptureSamples(device, (ALCvoid *)buffer, SAMPLES);
+			
+		   	for(int i=0; i < SAMPLES; i++) {
 				fprintf (fp, "%ld\t%d\n", counter++, pBuffer16[i]);
-				
-			  	double value = (double) pBuffer16[i]; 
-				value = value / 32768; /* 2^16/ 2  da pro Kanal 16bit aufloesung */
 
-				printf("%lf ;", value);
-				fft_in[i/2] = value;
+				fft_in[i/2] = (double) pBuffer16[i];
 			}
-			cout << endl;
+			
 			fftw_execute(p);
 
 			fflush(fp);
+
+			double** pOut = (double**) out;
+
+			for(int i=0; i < SAMPLES/2; i++){
+				printf("%lf ", out[i][0]);
+			}
+
+			cout << endl;
+			cout << endl;
+				
 		}
 		 
 		usleep(1000);
