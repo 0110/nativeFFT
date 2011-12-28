@@ -135,7 +135,7 @@ int main(int argc, char *argv[]) {
 			printf("\nThere was some data found:\n");
 			
 		   	for(int i=0; i < SAMPLES; i++) {
-				fprintf (fp, "%ld\t%d\n", counter++, pBuffer16[i]);
+				fprintf (fp, "%llu\t%d\n", counter++, pBuffer16[i]);
 
 				/* store the value in the inbuffer */
 
