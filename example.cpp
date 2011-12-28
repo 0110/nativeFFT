@@ -2,10 +2,13 @@
 #include <AL/alc.h>
 #include <iostream>
 #include <stdio.h>
+#include <fftw3.h>
+
 using namespace std;
 
 const int SRATE = 44100;
 const int SSIZE = 1024;
+#define SAMPLES 1024
 
 ALbyte buffer[22050];
 ALint sample;
@@ -17,7 +20,7 @@ int main(int argc, char *argv[]) {
 	// Enumerate OpenAL devices
 	if (alcIsExtensionPresent (NULL, (const ALCchar *) "ALC_ENUMERATION_EXT") == AL_TRUE)
 	{
-		const char *s = (const char *) alcGetString(NULL, ALC_DEVICE_SPECIFIER);
+		const char *s = (const char *) alcGetString(NULL, ALC_CAPTURE_DEVICE_SPECIFIER);
 		while (*s != '\0')
 		{
 			cout << "OpenAL available device: " << s << endl;
@@ -29,8 +32,10 @@ int main(int argc, char *argv[]) {
 		cout << "OpenAL device enumeration isn't available." << endl;
 	}
 
-	
-    ALCdevice *device = alcCaptureOpenDevice(NULL, SRATE, AL_FORMAT_STEREO16, SSIZE);
+	 const char *szDefaultCaptureDevice = alcGetString(NULL, 
+ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER); 
+cout << szDefaultCaptureDevice << endl;
+    ALCdevice *device = alcCaptureOpenDevice(szDefaultCaptureDevice, SRATE , AL_FORMAT_STEREO16, SAMPLES);
     ALenum errno = alGetError();
     if (errno != AL_NO_ERROR) {
 	switch(errno) {
@@ -46,20 +51,22 @@ int main(int argc, char *argv[]) {
 	cout << endl;
 	printf( "There was an error while opening device! Error number: %s\n", alGetString(errno));
 		
-        return 0;
-    }
-    alcCaptureStart(device);
 
-    while (true) {
+    }
+
+fftw_complex *out;
+double* in = (double*) fftw_malloc(sizeof(double)*SAMPLES);
+
+out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*SAMPLES/2+1);
+
+fftw_plan p = fftw_plan_dft_r2c_1d(SAMPLES, in, out, FFTW_ESTIMATE);
+
+    alcCaptureStart(device);
+while(1) {
         alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);
         alcCaptureSamples(device, (ALCvoid *)buffer, sample);
-
-        // ... do something with the buffer 
+        
 	
-    }
-
-    alcCaptureStop(device);
-    alcCaptureCloseDevice(device);
 
     return 0;
 }
