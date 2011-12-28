@@ -6,7 +6,6 @@
 #include <inttypes.h>
 #include <fftw3.h>
 #include <unistd.h>
-#include <curses.h> /* needed to clear the screen */	
 #include <math.h>
 
 using namespace std;
@@ -126,12 +125,12 @@ int main(int argc, char *argv[]) {
 	/* -------------------------- ncurses -------------------------- */	
 	while(true) {
 		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);
-		system("clear");
-		printf("Sample amount: %d\tAim:%d\n", sample, SAMPLES);
+		printf("\rSample amount: %d\tAim:%d", sample, SAMPLES);
 		
 		if (sample >= SAMPLES)
 		{
 			alcCaptureSamples(device, (ALCvoid *)buffer, SAMPLES);
+			printf("\nThere was some data found:\n");
 			
 		   	for(int i=0; i < SAMPLES; i++) {
 				fprintf (fp, "%lld\t%d\n", counter++, pBuffer16[i]);
