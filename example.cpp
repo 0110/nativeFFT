@@ -57,6 +57,7 @@ int main(int argc, char *argv[]) {
     }
 
 	fftw_complex *out;
+	double value;
 	double* fft_in = (double*) fftw_malloc(sizeof(double)*SAMPLES);
 
 	out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*SAMPLES/2+1);
@@ -67,41 +68,39 @@ int main(int argc, char *argv[]) {
 	
 	int16_t* pBuffer16 = (int16_t *) &buffer;
 	uint64_t counter = 0;
-	FILE *fp = fopen("/tmp/daimudda.dump", "rw+");
+	FILE *fp = fopen("/tmp/daimudda.dump", "w+");
 	if (fp == NULL) {
 		cout << "nooooooooooooooooooooo" << endl;
 		return(666);
 	}
 	
 	while(true) {
-		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);
-		
+		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);		
+		//printf("Sample length: %d\tAim:%d\n", sample, SAMPLES);
 		if (sample >= SAMPLES)
 		{
+			printf("---------------------------- \n"); /* a sample is processed */
 			alcCaptureSamples(device, (ALCvoid *)buffer, SAMPLES);
 			
 		   	for(int i=0; i < SAMPLES; i++) {
-				fprintf (fp, "%ld\t%d\n", counter++, pBuffer16[i]);
+				fprintf (fp, "%lld\t%d\n", counter++, pBuffer16[i]);
 
-				fft_in[i/2] = (double) pBuffer16[i];
+				/* store the value in the inbuffer */
+				value = (double) pBuffer16[i];
+				fft_in[i] = value; //FIXME warum war da nen /2 ???
+
 			}
-			
 			fftw_execute(p);
 
 			fflush(fp);
 
-			double** pOut = (double**) out;
-
-			/*for(int i=0; i < SAMPLES/2; i++){
+			for(int i=0; i < SAMPLES/2; i++){
 				printf("%lf ", out[i][0]);
-			}*/
-
-			cout << endl;
-			cout << endl;
-				
+			}
+			printf("\n\n");	   
 		}
 		 
-		usleep(1000);
+		usleep(4000);
 	}
     return 0;
 }
