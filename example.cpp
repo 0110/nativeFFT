@@ -2,6 +2,7 @@
 #include <AL/alc.h>
 #include <iostream>
 #include <stdio.h>
+#include <stdlib.h>
 #include <inttypes.h>
 #include <fftw3.h>
 #include <unistd.h>
@@ -102,15 +103,12 @@ int main(int argc, char *argv[]) {
 		return(666);
 	}
 
-	/* -------------------------- ncurses -------------------------- */
-	initscr();			/* Start curses mode 		  */
-	printw("Hello World !!!");	/* Print Hello World		  */
-	refresh();			/* Print it on to the real screen */
-	
+	/* -------------------------- ncurses -------------------------- */	
 	while(true) {
-		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);		
-		//printf("Sample length: %d\tAim:%d\n", sample, SAMPLES);
-		mvprintw(0,0,"Sample amount: %d\tAim:%d\n", sample, SAMPLES);
+		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);
+		system("clear");
+		printf("Sample amount: %d\tAim:%d\n", sample, SAMPLES);
+		
 		if (sample >= SAMPLES)
 		{
 			alcCaptureSamples(device, (ALCvoid *)buffer, SAMPLES);
@@ -129,11 +127,9 @@ int main(int argc, char *argv[]) {
 			
 			printFrequencies ( SAMPLES, (double* )out ); 
 		}
-		refresh();	/* update the UI */
 		usleep(4000);
 	}
 
-	endwin();			/* End curses mode		  */
     return 0;
 }
 
