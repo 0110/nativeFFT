@@ -69,12 +69,13 @@ int main(int argc, char *argv[]) {
 	while(true) {
 		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);
 		alcCaptureSamples(device, (ALCvoid *)buffer, sample);
+		
 		if (sample > 0)
 		{
 			cout << sample <<endl;
 		   	for(int i=0; i < (BSIZE >> 1); i+=2) {
 			  	double value = (double) (pBuffer16[i] + pBuffer16[i+1]) / 2; // Linken und rechten Kanal addieren
-				value = value / 32768;
+				value = value / 32768; /* 2^16/ 2  da pro Kanal 16bit aufloesung */
 
 				fft_in[i/2] = value;
 			}
