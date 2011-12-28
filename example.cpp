@@ -2,6 +2,7 @@
 #include <AL/alc.h>
 #include <iostream>
 #include <stdio.h>
+#include <inttypes.h>
 using namespace std;
 
 const int SRATE = 44100;
@@ -42,15 +43,27 @@ int main(int argc, char *argv[]) {
 	
     alcCaptureStart(device);
 	int index = 0;
+	int zeros;
+	
+	uint16_t* pBuffer16 = (uint16_t *) buffer;
+	doule[] value;
     while (true) {
-        alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);
+        alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei) sizeof(ALint), &sample);
         alcCaptureSamples(device, (ALCvoid *)buffer, sample);
-		printf("%d", index);
+		printf("%4d ", index);
 		for(int i=0; i < 22050; i++) {
-			printf(" %d", buffer[i]);
+			if (buffer[i] != 0)
+				zeros++;
+			
+			left = (uint16_t*) buffer+(i*4);
+			right = (uint16_t*) buffer+(i*4) + 2;
+			value = ( *left + *right )
+	//		printf(" %2x", buffer[i]);
         	// ... do something with the buffer 
 		}
-		printf("\n");
+//		printf("\n");
+		printf("zeros %d\n", zeros);
+		zeros=0;
 		index++;
     }
 
