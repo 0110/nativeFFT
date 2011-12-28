@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include <fftw3.h>
+#include <unistd.h>
 
 using namespace std;
 
@@ -68,15 +69,20 @@ int main(int argc, char *argv[]) {
 	while(true) {
 		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);
 		alcCaptureSamples(device, (ALCvoid *)buffer, sample);
-		for(int i=0; i < (BSIZE >> 1); i+=2) {
-			double value = (double) (pBuffer16[i] + pBuffer16[i+1]) / 2; // Linken und rechten Kanal addieren
-			value = value / 32768;
+		if (sample > 0)
+		{
+			cout << sample <<endl;
+		   	for(int i=0; i < (BSIZE >> 1); i+=2) {
+			  	double value = (double) (pBuffer16[i] + pBuffer16[i+1]) / 2; // Linken und rechten Kanal addieren
+				value = value / 32768;
 
-			fft_in[i/2] = value;
+				fft_in[i/2] = value;
+			}
+
+			fftw_execute(p);
 		}
-
-		fftw_execute(p);
-
+		
+		usleep(1000);
 	}
     return 0;
 }
