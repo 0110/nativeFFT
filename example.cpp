@@ -40,31 +40,18 @@ int main(int argc, char *argv[]) {
 		cout << "Could not create a capture device" << endl;
 	}
 	
-    ALenum errno = alGetError();
-    if (errno != AL_NO_ERROR) {
-	switch(errno) {
-	case ALC_INVALID_VALUE:
-		cout << "Invalide Value";
-		break;
-		case ALC_OUT_OF_MEMORY:
-			cout << "Out of memory";
-			break;
-			default:
-			cout << "Unkown error";
-	}
-	cout << endl;
-	printf( "There was an error while opening device! Error: %s (%d)\n", alGetString(errno), errno);
-		
-        return 0;
-    }
     alcCaptureStart(device);
-
+	int index = 0;
     while (true) {
         alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);
         alcCaptureSamples(device, (ALCvoid *)buffer, sample);
-
-        // ... do something with the buffer 
-	
+		printf("%d", index);
+		for(int i=0; i < 22050; i++) {
+			printf(" %d", buffer[i]);
+        	// ... do something with the buffer 
+		}
+		printf("\n");
+		index++;
     }
 
     alcCaptureStop(device);
