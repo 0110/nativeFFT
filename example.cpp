@@ -76,35 +76,38 @@ int main(int argc, char *argv[]) {
 	
 	while(true) {
 		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);		
+		printf("Sample length: %d\tAim:%d\n", sample, SAMPLES);
 		if (sample >= SAMPLES)
 		{
+			printf("---------------------------- "); /* a sample is processed */
 			alcCaptureSamples(device, (ALCvoid *)buffer, SAMPLES);
 			
 		   	for(int i=0; i < SAMPLES; i++) {
 				fprintf (fp, "%lld\t%d\n", counter++, pBuffer16[i]);
 
+				/* store the value in the inbuffer*/
+				value = (double) pBuffer16[i];
+				fft_in[i] = value; //FIXME warum war da nen /2 ???
+/*
 				printf("%lf ;", value);
-				fft_in[i/2] = value;
 				
 				cout << "FFT:";
 				for (int i=0; i < SAMPLES/2+1; i++)
 				{
 					printf(" %lf", out[i][0]);
 				}
-				cout << endl;
+				cout << endl;*/
 			}
 			fftw_execute(p);
 
 			fflush(fp);
 
 			double** pOut = (double**) out;
-
+/*
 			for(int i=0; i < SAMPLES/2; i++){
 				printf("%lf ", out[i][0]);
 			}
-
-			cout << endl;
-			cout << endl;
+			printf("\n\n");*/
 				
 		}
 		 
