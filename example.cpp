@@ -138,14 +138,14 @@ int main(int argc, char *argv[]) {
 				/* store the value in the inbuffer */
 				value = (double) pBuffer16[i];
 				fft_in[i] = value;
-
 			}
 			fftw_execute(p);
 
 			fflush(fp);
 			
 			printFrequencies ((double* )out, compressed); 
-
+			printf("The compressed size is %d, the orignal was %d\n", COMPRESSED_SIZE, SAMPLES);
+			
 			for(int i=0; i < COMPRESSED_SIZE; i++) {
 				printf("%lf\n", compressed[i]);
 			}
