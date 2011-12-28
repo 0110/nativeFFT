@@ -13,7 +13,7 @@ using namespace std;
 
 const int SRATE = 44100;
 #define BSIZE	22050	/* Buffer size */
-#define SAMPLES 1024
+#define SAMPLES 512
 
 #define COMPRESSION_FACTOR 10
 #define COMPRESSED_SIZE ((SAMPLES / COMPRESSION_FACTOR) + 1)
@@ -29,13 +29,13 @@ ALint sample;
 void printFrequencies (double *plainFFT, double *compressed)
 {
     int i = 0, compressedIndex = 0;
-	double c, s, r, value;
+	double c, s, r, value = 0.0;
     
 	/* handle first line seperatly */
 	c = plainFFT[2*i]/SAMPLES;
 	r = log(sqrt(c*c));
 	/* store the first captured value */
-	value = r;
+	value += r;
 	
 //	printf("%f\n", r); //TODO debug code
 	
@@ -88,7 +88,8 @@ int main(int argc, char *argv[]) {
     const char *szDefaultCaptureDevice = alcGetString(NULL,ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER); 
     cout << szDefaultCaptureDevice << endl;
 
-    ALCdevice *device = alcCaptureOpenDevice("Monitor of Internes Audio Analog Stereo via PulseAudio", SRATE ,  AL_FORMAT_MONO16, SAMPLES);
+	/* Here the outputdevice could be specified */
+    ALCdevice *device = alcCaptureOpenDevice(NULL, SRATE ,  AL_FORMAT_MONO16, SAMPLES);
     ALenum errno = alGetError();
     if (errno != AL_NO_ERROR) {
 		switch(errno) {
@@ -147,7 +148,7 @@ int main(int argc, char *argv[]) {
 			fflush(fp);
 			
 			printFrequencies ((double* )out, compressed); 
-			printf("The compressed size is %d, the orignal was %d\n", COMPRESSED_SIZE, SAMPLES);
+			printf("The compressed size is %d (compressing %d), the orignal was %d\n", COMPRESSED_SIZE, COMPRESSION_FACTOR, SAMPLES);
 			
 			for(int i=0; i < COMPRESSED_SIZE; i++) {
 				printf("%lf\n", compressed[i]);
