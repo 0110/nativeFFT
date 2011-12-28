@@ -5,6 +5,7 @@
 #include <inttypes.h>
 #include <fftw3.h>
 #include <unistd.h>
+#define _USE_MATH_DEFINES
 #include <math.h>
 
 using namespace std;
@@ -72,7 +73,7 @@ int main(int argc, char *argv[]) {
     const char *szDefaultCaptureDevice = alcGetString(NULL,ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER); 
     cout << szDefaultCaptureDevice << endl;
 
-    ALCdevice *device = alcCaptureOpenDevice(szDefaultCaptureDevice, SRATE ,  AL_FORMAT_MONO16, SAMPLES);
+    ALCdevice *device = alcCaptureOpenDevice("Monitor of Internes Audio Analog Stereo via PulseAudio", SRATE ,  AL_FORMAT_MONO16, SAMPLES);
     ALenum errno = alGetError();
     if (errno != AL_NO_ERROR) {
 		switch(errno) {
@@ -117,8 +118,8 @@ int main(int argc, char *argv[]) {
 				fprintf (fp, "%lld\t%d\n", counter++, pBuffer16[i]);
 
 				/* store the value in the inbuffer */
-				value = (double) pBuffer16[i];
-				fft_in[i] = value; //FIXME warum war da nen /2 ???
+				value = ((double) pBuffer16[i]) ;
+				fft_in[i] = value *0.5 * (1 - cos((2 * M_PI * i) / (SAMPLES - 1))); //FIXME warum war da nen /2 ???
 
 			}
 			fftw_execute(p);
