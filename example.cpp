@@ -68,7 +68,7 @@ int main(int argc, char *argv[]) {
 	
 	int16_t* pBuffer16 = (int16_t *) &buffer;
 	uint64_t counter = 0;
-	FILE *fp = fopen("/tmp/daimudda.dump", "rw+");
+	FILE *fp = fopen("/tmp/daimudda.dump", "w+");
 	if (fp == NULL) {
 		cout << "nooooooooooooooooooooo" << endl;
 		return(666);
