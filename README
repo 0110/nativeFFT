@@ -1,6 +1,7 @@
 Requirements:
 - OpenAl
 - FFTW
+- Ncurses
 
 Installation Command for debian:
- aptitude install libopenal-dev fftw3-dev
+ aptitude install libopenal-dev fftw3-dev libncurses-dev

@@ -2,6 +2,7 @@
 #include <AL/alc.h>
 #include <iostream>
 #include <stdio.h>
+#include <stdlib.h>
 #include <inttypes.h>
 #include <fftw3.h>
 #include <unistd.h>
@@ -11,41 +12,55 @@
 using namespace std;
 
 const int SRATE = 44100;
-const int SSIZE = 1024;
 #define BSIZE	22050	/* Buffer size */
 #define SAMPLES 1024
+
+#define COMPRESSION_FACTOR 10
+#define COMPRESSED_SIZE ((SAMPLES / COMPRESSION_FACTOR) + 1)
 
 ALbyte buffer[BSIZE];
 ALint sample;
 
-void printKoeff ( int i, double c, double s )
-{
-    double r = log(sqrt(c*c + s*s));
-    double phi = 0;
-	double f = (i * 44100.0 )/ SAMPLES;
-    
-   // printf ( "%7.1f\t%13.6f %13.6f %13.6f", f, c, s, r);
-	 printf ( "%f\t%f", f, r );
 /*
-	if (r>0.000001) {
-	phi = atan2(s,c) * ( 180 / M_PI );
-        printf ( " %10.3f", phi );
-    }*/
-    printf("\n");
-}
-
-void printFrequencies ( int n, double *out )
+ * Reduce the amount of data!
+ * @param[in] 	plainFFT	The captured sample, that was modified by the FFT
+ * @param[out]	compressed	There only a compressed data is returned to work on.
+ */
+void printFrequencies (double *plainFFT, double *compressed)
 {
-    int i = 0;
+    int i = 0, compressedIndex = 0;
+	double c, s, r, value;
     
-    //printf("%5s\t%13s %13s %13s %10s\n","i", "cos", "sin", "Amplitude", "Phase" );
-	printf("%s\t%s\n","i","Amplitude" );
-    printKoeff (0, out[0]/n, 0 );
-    for ( i=1; 2*i<n; i++ ) {
-		printKoeff (i, 2*out[2*i]/n, -2*out[2*i+1]/n);
+	/* handle first line seperatly */
+	c = plainFFT[2*i]/SAMPLES;
+	r = log(sqrt(c*c));
+	/* store the first captured value */
+	value = r;
+	
+//	printf("%f\n", r); //TODO debug code
+	
+	
+    for ( i=1; 2*i < SAMPLES; i++ ) {
+		c = 2*plainFFT[2*i]/SAMPLES;
+		s = -2*plainFFT[2*i+1]/SAMPLES;
+ 	    r = log(sqrt(c*c + s*s));
+		value += r; /* add the actual value */
+		if (i % COMPRESSION_FACTOR == 0) {
+			compressed[compressedIndex++] = value / COMPRESSION_FACTOR;
+			value = 0;
+		}
+//		printf("%f\n", r); /TODO debug code
 	}
-    if ( n % 2 == 0 )
-	printKoeff (i, out[2*i]/n, 0 );
+
+	/* handle last line seperatly */
+	if ( SAMPLES % 2 == 0 ) {
+		c = plainFFT[2*i]/SAMPLES;
+		r = log(sqrt(c*c));
+		value += r;
+//		printf("%f\n", r); //TODO debug code
+	}
+	// Add the last
+	compressed[compressedIndex++] = (value / (i % COMPRESSION_FACTOR));
 }
 	
 int main(int argc, char *argv[]) {
@@ -88,9 +103,11 @@ int main(int argc, char *argv[]) {
 		}
     }
 
+	/* prepare everything for the FFT */
 	fftw_complex *out;
 	double value;
 	double* fft_in = (double*) fftw_malloc(sizeof(double)*SAMPLES);
+	double* compressed = (double*) malloc(sizeof(double) * COMPRESSED_SIZE);
 
 	out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*SAMPLES/2+1);
 
@@ -105,19 +122,22 @@ int main(int argc, char *argv[]) {
 		cout << "nooooooooooooooooooooo" << endl;
 		return(666);
 	}
-	
+
+	/* -------------------------- ncurses -------------------------- */	
 	while(true) {
-		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);		
-		//printf("Sample length: %d\tAim:%d\n", sample, SAMPLES);
+		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);
+		printf("\rSample amount: %d\tAim:%d", sample, SAMPLES);
+		
 		if (sample >= SAMPLES)
 		{
-			printf("---------------------------- \n"); /* a sample is processed */
 			alcCaptureSamples(device, (ALCvoid *)buffer, SAMPLES);
+			printf("\nThere was some data found:\n");
 			
 		   	for(int i=0; i < SAMPLES; i++) {
 				fprintf (fp, "%lld\t%d\n", counter++, pBuffer16[i]);
 
 				/* store the value in the inbuffer */
+
 				value = ((double) pBuffer16[i]) ;
 				fft_in[i] = value *0.5 * (1 - cos((2 * M_PI * i) / (SAMPLES - 1))); //FIXME warum war da nen /2 ???
 
@@ -125,12 +145,18 @@ int main(int argc, char *argv[]) {
 			fftw_execute(p);
 
 			fflush(fp);
+			
+			printFrequencies ((double* )out, compressed); 
 
-			printFrequencies ( SAMPLES, (double* )out ); 
+			for(int i=0; i < COMPRESSED_SIZE; i++) {
+				printf("%lf\n", compressed[i]);
+			}
+			
+			return 0; /* we have one sample captured... exit */
 		}
-		 
-		usleep(1000);
+		usleep(4000);
 	}
+
     return 0;
 }
 
