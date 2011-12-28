@@ -5,17 +5,48 @@
 #include <inttypes.h>
 #include <fftw3.h>
 #include <unistd.h>
+#include <math.h>
 
 using namespace std;
 
 const int SRATE = 44100;
 const int SSIZE = 1024;
 #define BSIZE	22050	/* Buffer size */
-#define SAMPLES 1024
+#define SAMPLES 512
 
 ALbyte buffer[BSIZE];
 ALint sample;
 
+void printKoeff ( int i, double c, double s )
+{
+    double r = log(sqrt(c*c + s*s));
+    double phi = 0;
+	double f = (i * 44100.0 )/ SAMPLES;
+    
+   // printf ( "%7.1f\t%13.6f %13.6f %13.6f", f, c, s, r);
+	 printf ( "%f\t%f", f, r );
+/*
+	if (r>0.000001) {
+	phi = atan2(s,c) * ( 180 / M_PI );
+        printf ( " %10.3f", phi );
+    }*/
+    printf("\n");
+}
+
+void printFrequencies ( int n, double *out )
+{
+    int i = 0;
+    
+    //printf("%5s\t%13s %13s %13s %10s\n","i", "cos", "sin", "Amplitude", "Phase" );
+	printf("%s\t%s\n","i","Amplitude" );
+    printKoeff (0, out[0]/n, 0 );
+    for ( i=1; 2*i<n; i++ ) {
+		printKoeff (i, 2*out[2*i]/n, -2*out[2*i+1]/n);
+	}
+    if ( n % 2 == 0 )
+	printKoeff (i, out[2*i]/n, 0 );
+}
+	
 int main(int argc, char *argv[]) {
 	// retrieve all old errors
 	alGetError();
@@ -94,13 +125,10 @@ int main(int argc, char *argv[]) {
 
 			fflush(fp);
 
-			for(int i=0; i < SAMPLES/2; i++){
-				printf("%lf ", out[i][0]);
-			}
-			printf("\n\n");	   
+			printFrequencies ( SAMPLES, (double* )out ); 
 		}
 		 
-		usleep(4000);
+		usleep(1000);
 	}
     return 0;
 }
