@@ -12,7 +12,6 @@
 using namespace std;
 
 const int SRATE = 44100;
-const int SSIZE = 1024;
 #define BSIZE	22050	/* Buffer size */
 #define SAMPLES 512
 
