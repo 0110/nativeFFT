@@ -5,6 +5,8 @@
 #include <inttypes.h>
 #include <fftw3.h>
 #include <unistd.h>
+#include <curses.h> /* needed to clear the screen */	
+#include <cmath>
 
 using namespace std;
 
@@ -94,10 +96,16 @@ int main(int argc, char *argv[]) {
 
 			fflush(fp);
 
+			clear();
 			for(int i=0; i < SAMPLES/2; i++){
-				printf("%lf ", out[i][0]);
+				printf("[");
+				for(int j=0; j < (int) abs(out[i][0]); j++)
+				{
+					printf("=");
+				}
+				printf("\n");
+				
 			}
-			printf("\n\n");	   
 		}
 		 
 		usleep(4000);
