@@ -13,32 +13,40 @@ using namespace std;
 
 const int SRATE = 44100;
 #define BSIZE	22050	/* Buffer size */
-#define SAMPLES 512
+#define SAMPLES 128
+
+#define COMPRESSION_FACTOR 10
+#define COMPRESSED_SIZE ((SAMPLES / COMPRESSION_FACTOR) + 1)
 
 ALbyte buffer[BSIZE];
 ALint sample;
 
-void printFrequencies ( int n, double *out )
+/*
+ * Reduce the amount of data!
+ * @param[in] 	plainFFT	The captured sample, that was modified by the FFT
+ * @param[out]	compressed	There only a compressed data is returned to work on.
+ */
+void printFrequencies (double *plainFFT, double *compressed)
 {
     int i = 0;
 	double c, s, r;
     
 	/* print first line seperatly */
-	c = out[2*i]/n;
+	c = plainFFT[2*i]/SAMPLES;
 	r = log(sqrt(c*c));
 	printf("%f\n", r);
 	
 	
-    for ( i=1; 2*i<n; i++ ) {
-		c = 2*out[2*i]/n;
-		s = -2*out[2*i+1]/n;
+    for ( i=1; 2*i < SAMPLES; i++ ) {
+		c = 2*plainFFT[2*i]/SAMPLES;
+		s = -2*plainFFT[2*i+1]/SAMPLES;
  	    r = log(sqrt(c*c + s*s));
 		printf("%f\n", r);
 	}
 
 	/* print last line seperatly */
-	if ( n % 2 == 0 ) {
-		c = out[2*i]/n;
+	if ( SAMPLES % 2 == 0 ) {
+		c = plainFFT[2*i]/SAMPLES;
 		r = log(sqrt(c*c));
 		printf("%f\n", r);
 	}
@@ -84,7 +92,9 @@ int main(int argc, char *argv[]) {
 		}
     }
 
+	/* prepare everything for the FFT */
 	fftw_complex *out;
+	double* compressed = (double*) malloc(sizeof(double) * COMPRESSED_SIZE);
 	double value;
 	double* fft_in = (double*) fftw_malloc(sizeof(double)*SAMPLES);
 
@@ -124,7 +134,8 @@ int main(int argc, char *argv[]) {
 
 			fflush(fp);
 			
-			printFrequencies ( SAMPLES, (double* )out ); 
+			printFrequencies ((double* )out, compressed); 
+			return 0; /* we have one sample captured... exit */
 		}
 		usleep(4000);
 	}
