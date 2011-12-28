@@ -83,12 +83,13 @@ int main(int argc, char *argv[]) {
 	while(true) {
 		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);		
 		//printf("Sample length: %d\tAim:%d\n", sample, SAMPLES);
-		mvprintw(0,0,"Sample length: %d\tAim:%d\n", sample, SAMPLES);
-		if (sample >= SAMPLES)
+		mvprintw(0,0,"Sample amount: %d\tAim:%d\n", sample, SAMPLES);
+//		if (sample >= SAMPLES)
+		if (sample > (SAMPLES >> 1)) /* only wait for half of the samples */
 		{
-			alcCaptureSamples(device, (ALCvoid *)buffer, SAMPLES);
+			alcCaptureSamples(device, (ALCvoid *)buffer, (SAMPLES >> 1));
 			
-		   	for(int i=0; i < SAMPLES; i++) {
+		   	for(int i=0; i < (SAMPLES >> 1); i++) {
 				fprintf (fp, "%lld\t%d\n", counter++, pBuffer16[i]);
 
 				/* store the value in the inbuffer */
@@ -100,10 +101,10 @@ int main(int argc, char *argv[]) {
 
 			fflush(fp);
 			
-			clear();
 			for(int i=0, row=0; i < SAMPLES/2; i+=4, row++){
-				for(int j=0; j < (int) abs(out[i][0]); j++)
-					mvaddch(j, row, '*');
+				for(int j=0; j < (int) abs(out[i][0]); j++) {
+					mvprintw(j, row, "*");
+				}
 //					printw("Sample length: %d", abs(out[i][0]));
 			}
 		}
