@@ -4,7 +4,7 @@
 #include "audiocapture.h"
 #include <stdio.h>
 
-
+/* here one packages arrives and could be modified */
 void handleIncomeingSample(const double* array, const int length)
 {
 	int i;
@@ -18,6 +18,14 @@ void handleIncomeingSample(const double* array, const int length)
 int main(int argc, char *argv[]) {
 
 	AUDIO_CAPTURE_RET ret = audiocapture_init(&handleIncomeingSample);
+	if (AUDIO_CAPTURE_RET_OK != ret)
+	{
+		printf("There was an error while initing the capturing device\n");
+		return 1;
+	}
+
+	/* should start the endless loop that recordes the audio data */
+	ret = audiocapture_start();
 	if (AUDIO_CAPTURE_RET_OK != ret)
 	{
 		printf("There was an error while initing the capturing device\n");
