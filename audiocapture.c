@@ -103,6 +103,10 @@ static void convertData(double *plainFFT, double *compressed)
 	compressed[compressedIndex++] = value;
 }
 
+/********************* Global variables ***************************************/
+static ALCdevice *gpDevice = NULL;
+static handle_data_callback_t gpDataHandle = NULL;
+
 /********************* Global functions ***************************************/
 AUDIO_CAPTURE_RET audiocapture_scan_audiodevices(void)
 {
@@ -131,29 +135,45 @@ AUDIO_CAPTURE_RET audiocapture_scan_audiodevices(void)
 	return AUDIO_CAPTURE_RET_OK;
 }
 
-
-AUDIO_CAPTURE_RET audiocapture_init(handle_data_callback_t handler)
+AUDIO_CAPTURE_RET audiocapture_init(handle_data_callback_t handle)
 {
 	// retrieve all old errors
 	alGetError();
 
 	/* Here the outputdevice could be specified */
-    ALCdevice *device = alcCaptureOpenDevice(NULL, SRATE ,  AL_FORMAT_MONO16, SAMPLES);
-    ALenum errno = alGetError();
-    if (errno != AL_NO_ERROR) {
-		switch(errno) {
-		case ALC_INVALID_VALUE:
-			printf("Invalide Value\n");
-			return AUDIO_CAPTURE_RET_ERROR_IO;
-		case ALC_OUT_OF_MEMORY:
-			printf("Out of memory\n");
-			return AUDIO_CAPTURE_RET_ERROR_IO;
-		default:
-			printf("Unkown error\n");
+    gpDevice = alcCaptureOpenDevice(NULL, SRATE ,  AL_FORMAT_MONO16, SAMPLES);
+	if (gpDevice == NULL)
+	{
+		ALenum errno = alGetError();
+		if (errno != AL_NO_ERROR) {
+			switch(errno) {
+			case ALC_INVALID_VALUE:
+				printf("Invalide Value\n");
+				return AUDIO_CAPTURE_RET_ERROR_IO;
+			case ALC_OUT_OF_MEMORY:
+				printf("Out of memory\n");
+				return AUDIO_CAPTURE_RET_ERROR_IO;
+			default:
+				printf("Unkown error\n");
+			}
 			return AUDIO_CAPTURE_RET_ERROR_FATAL;
+		} else {
+			return AUDIO_CAPTURE_RET_ERROR_UNREACHED_AREA;
 		}
-    }
+	} else {
+		gpDataHandle = handle;
+		return AUDIO_CAPTURE_RET_OK;
+	}
+}
 
+AUDIO_CAPTURE_RET audiocapture_start(void)
+{
+	if (gpDevice == NULL || gpDataHandle == NULL)
+	{
+		/* You must have called audiocapture_init before */
+		return AUDIO_CAPTURE_RET_ERROR_FATAL;
+	}
+	
 	/* prepare everything for the FFT */
 	fftw_complex *out;
 	double value;
@@ -165,15 +185,9 @@ AUDIO_CAPTURE_RET audiocapture_init(handle_data_callback_t handler)
 
 	fftw_plan p = fftw_plan_dft_r2c_1d(SAMPLES, fft_in, out, FFTW_ESTIMATE);
 
-    alcCaptureStart(device);
+    alcCaptureStart(gpDevice);
 	
 	int16_t* pBuffer16 = (int16_t *) &buffer;
-	uint64_t counter = 0;
-	FILE *fp = fopen("/tmp/daimudda.dump", "w+");
-	if (fp == NULL) {
-		printf("nooooooooooooooooooooo\n");
-		return(666);
-	}
 
 	/* build lookuptable for windowfunction (antilazing) */
 	/* algorithm does: fading in at the left side and fading out at the right side */
@@ -185,34 +199,28 @@ AUDIO_CAPTURE_RET audiocapture_init(handle_data_callback_t handler)
 
 	/* -------------------------- ncurses -------------------------- */	
 	while(TRUE) {
-		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);
+		alcGetIntegerv(gpDevice, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);
 		printf("\rSample amount: %d\tAim:%d", sample, SAMPLES);
 		
 		if (sample >= SAMPLES)
 		{
-			alcCaptureSamples(device, (ALCvoid *)buffer, SAMPLES);
+			alcCaptureSamples(gpDevice, (ALCvoid *)buffer, SAMPLES);
 			printf("\nThere was some data found:\n");
 			
 		   	for(i=0; i < SAMPLES; i++) {
-				fprintf (fp, "%ld\t%d\n", counter++, pBuffer16[i]);
-
 				/* store the value in the inbuffer */
 				value = ((double) pBuffer16[i]);
 
 			    /* use the table for fading in and out */
 				fft_in[i] = value * windowLookup[i];
-
 			}
-			fftw_execute(p);
 
-			fflush(fp);
+			/* let the fft do its magic */
+			fftw_execute(p);
 			
-			convertData ((double*)out, compressed); 
-			printf("The compressed size is %d (compressing %d), the orignal was %d\n", COMPRESSED_SIZE, COMPRESSION_FACTOR, SAMPLES);
+			convertData ((double*)out, compressed);
+			gpDataHandle(compressed, COMPRESSED_SIZE);
 			
-			for(i=0; i < COMPRESSED_SIZE; i++) {
-				printf("%lf\n", compressed[i]);
-			}			
 		}
 		usleep(4000);
 	}
