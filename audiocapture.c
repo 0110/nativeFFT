@@ -103,6 +103,10 @@ static void convertData(double *plainFFT, double *compressed)
 	compressed[compressedIndex++] = value;
 }
 
+/********************* Global variables ***************************************/
+static ALCdevice *gpDevice = NULL;
+static handle_data_callback_t gpDataHandle = NULL;
+
 /********************* Global functions ***************************************/
 AUDIO_CAPTURE_RET audiocapture_scan_audiodevices(void)
 {
@@ -130,9 +134,6 @@ AUDIO_CAPTURE_RET audiocapture_scan_audiodevices(void)
     printf("Default device is %s\n", szDefaultCaptureDevice);
 	return AUDIO_CAPTURE_RET_OK;
 }
-
-static ALCdevice *gpDevice = NULL;
-static handle_data_callback_t gpDataHandle = NULL;
 
 AUDIO_CAPTURE_RET audiocapture_init(handle_data_callback_t handle)
 {
