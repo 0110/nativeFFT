@@ -149,8 +149,8 @@ int main(int argc, char *argv[]) {
 			alcCaptureSamples(device, (ALCvoid *)buffer, SAMPLES);
 			printf("\nThere was some data found:\n");
 			
-		   	for (i=0; i < SAMPLES; i++) {
-				fprintf (fp, "%llu\t%d\n", counter++, pBuffer16[i]);
+		   	for(i=0; i < SAMPLES; i++) {
+				fprintf (fp, "%ld\t%d\n", counter++, pBuffer16[i]);
 
 				/* store the value in the inbuffer */
 
