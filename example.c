@@ -139,6 +139,14 @@ int main(int argc, char *argv[]) {
 		return(666);
 	}
 
+	/* build lookuptable for windowfunction (antilazing) */
+	/* algorithm does: fading in at the left side and fading out at the right side */
+	double windowLookup[SAMPLES];
+	/* calulate the vales*/
+	for(i=0; i < SAMPLES; i++) {
+		windowLookup[i] = 0.5 * (1 - cos((2 * M_PI * i) / (SAMPLES - 1)));
+	}
+
 	/* -------------------------- ncurses -------------------------- */	
 	while(TRUE) {
 		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);
@@ -155,7 +163,7 @@ int main(int argc, char *argv[]) {
 				/* store the value in the inbuffer */
 
 				value = ((double) pBuffer16[i]) ;
-				fft_in[i] = value *0.5 * (1 - cos((2 * M_PI * i) / (SAMPLES - 1))); //FIXME warum war da nen /2 ???
+				fft_in[i] = value * windowLookup[i];
 
 			}
 			fftw_execute(p);
