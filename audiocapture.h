@@ -19,11 +19,11 @@
 
 //FIXME here we have to describe a structure to define all needed parameters
 
-enum AUDIO_CAPTURE_RET {
+typedef enum _AUDIO_CAPTURE_RET {
 	AUDIO_CAPTURE_RET_OK,
 	AUDIO_CAPTURE_RET_ERROR_FATAL,
 	AUDIO_CAPTURE_RET_ERROR_IO
-};
+} AUDIO_CAPTURE_RET;
 
 /*******************************************************************************
            Functions

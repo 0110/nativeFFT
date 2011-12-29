@@ -21,5 +21,6 @@
 
 AUDIO_CAPTURE_RET audiocapture_init()
 {
+	
 	return AUDIO_CAPTURE_RET_OK;
 }
