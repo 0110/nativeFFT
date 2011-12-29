@@ -69,7 +69,7 @@ void artnet_send_send(artnet_send_t* descriptor) {
 		.LengthLo = (uint8_t) (descriptor->length & 0xff)
 	};
 
-	memcopy(datagram.Data, descriptor->data, descriptor->length); 
+	memcpy(datagram.Data, descriptor->data, descriptor->length); 
 	
 	if (
 	    sendto(descriptor->socketDescriptor,

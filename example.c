@@ -3,6 +3,7 @@
 *******************************************************************************/
 #include "audiocapture.h"
 #include <stdio.h>
+#include "artnet_send.h"
 
 
 void handleIncomeingSample(const double* array, const int length)
@@ -18,6 +19,8 @@ int main(int argc, char *argv[]) {
 		printf("There was an error while initing the capturing device\n");
 		return 1;
 	}
+
+	
 	
     return 0;
 }
