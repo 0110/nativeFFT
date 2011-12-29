@@ -16,3 +16,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
+
+//FIXME here we have to describe a structure to define all needed parameters
+
+enum AUDIO_CAPTURE_RET {
+	AUDIO_CAPTURE_RET_OK,
+	AUDIO_CAPTURE_RET_ERROR_FATAL,
+	AUDIO_CAPTURE_RET_ERROR_IO
+};
+
+/*******************************************************************************
+           Functions
+ *******************************************************************************/
+
+/* TODO function description */
+AUDIO_CAPTURE_RET audiocapture_init();
+
