@@ -17,6 +17,9 @@
  * along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef AUDIO_CAPTURE_H
+#define AUDIO_CAPTURE_H
+
 //FIXME here we have to describe a structure to define all needed parameters
 
 /*
@@ -29,7 +32,8 @@ typedef void (*handle_data_callback_t)(const double* array, const int length);
 typedef enum _AUDIO_CAPTURE_RET {
 	AUDIO_CAPTURE_RET_OK,
 	AUDIO_CAPTURE_RET_ERROR_FATAL,
-	AUDIO_CAPTURE_RET_ERROR_IO
+	AUDIO_CAPTURE_RET_ERROR_IO,
+	AUDIO_CAPTURE_RET_ERROR_UNREACHED_AREA
 } AUDIO_CAPTURE_RET;
 
 /*******************************************************************************
@@ -43,3 +47,6 @@ AUDIO_CAPTURE_RET audiocapture_scan_audiodevices(void);
 AUDIO_CAPTURE_RET audiocapture_init(handle_data_callback_t handler);
 
 /* TODO function description */
+AUDIO_CAPTURE_RET audiocapture_start(void);
+
+#endif
