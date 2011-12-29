@@ -103,7 +103,7 @@ AUDIO_CAPTURE_RET audiocapture_init()
 	// retrieve all old errors
 	alGetError();
 
-	printf( "There was an error while opening device! Error number: %d\n", alGetError());
+	printf("There was an error while opening device! Error number: %d\n", alGetError());
 
 	// Enumerate OpenAL devices
 	if (alcIsExtensionPresent (NULL, (const ALCchar *) "ALC_ENUMERATION_EXT") == AL_TRUE)
