@@ -1,3 +1,6 @@
+/*******************************************************************************
+		Capturing data from the soundcard and visualize its bands
+*******************************************************************************/
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -18,7 +21,7 @@
 
 #define SRATE	44100
 #define BSIZE	22050	/* Buffer size */
-#define SAMPLES 512
+#define SAMPLES 256
 
 #define COMPRESSION_FACTOR 10
 #define COMPRESSED_SIZE ((SAMPLES / COMPRESSION_FACTOR) + 1)
@@ -176,9 +179,7 @@ int main(int argc, char *argv[]) {
 			
 			for(i=0; i < COMPRESSED_SIZE; i++) {
 				printf("%lf\n", compressed[i]);
-			}
-			
-			return 0; /* we have one sample captured... exit */
+			}			
 		}
 		usleep(4000);
 	}
