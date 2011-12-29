@@ -37,5 +37,9 @@ typedef enum _AUDIO_CAPTURE_RET {
  *******************************************************************************/
 
 /* TODO function description */
+AUDIO_CAPTURE_RET audiocapture_scan_audiodevices(void);
+
+/* TODO function description */
 AUDIO_CAPTURE_RET audiocapture_init(handle_data_callback_t handler);
 
+/* TODO function description */

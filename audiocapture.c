@@ -66,7 +66,7 @@ static double max(double a, double b)
  * @param[in] 	plainFFT	The captured sample, that was modified by the FFT
  * @param[out]	compressed	There only a compressed data is returned to work on.
  */
-void convertData(double *plainFFT, double *compressed)
+static void convertData(double *plainFFT, double *compressed)
 {
     int i = 0, compressedIndex = 0;
 	double c, s, r, value = 0.0;
@@ -103,12 +103,9 @@ void convertData(double *plainFFT, double *compressed)
 	compressed[compressedIndex++] = value;
 }
 
-
-AUDIO_CAPTURE_RET audiocapture_init(handle_data_callback_t handler)
+/********************* Global functions ***************************************/
+AUDIO_CAPTURE_RET audiocapture_scan_audiodevices(void)
 {
-	// retrieve all old errors
-	alGetError();
-
 	printf("There was an error while opening device! Error number: %d\n", alGetError());
 
 	// Enumerate OpenAL devices
@@ -124,11 +121,21 @@ AUDIO_CAPTURE_RET audiocapture_init(handle_data_callback_t handler)
 	else
 	{
 		printf("OpenAL device enumeration isn't available.");
+		return AUDIO_CAPTURE_RET_ERROR_IO;
 	}
 
+	
     /* Display default device */
     const char *szDefaultCaptureDevice = alcGetString(NULL,ALC_CAPTURE_DEFAULT_DEVICE_SPECIFIER); 
-    printf("%s\n", szDefaultCaptureDevice);
+    printf("Default device is %s\n", szDefaultCaptureDevice);
+	return AUDIO_CAPTURE_RET_OK;
+}
+
+
+AUDIO_CAPTURE_RET audiocapture_init(handle_data_callback_t handler)
+{
+	// retrieve all old errors
+	alGetError();
 
 	/* Here the outputdevice could be specified */
     ALCdevice *device = alcCaptureOpenDevice(NULL, SRATE ,  AL_FORMAT_MONO16, SAMPLES);
@@ -137,12 +144,13 @@ AUDIO_CAPTURE_RET audiocapture_init(handle_data_callback_t handler)
 		switch(errno) {
 		case ALC_INVALID_VALUE:
 			printf("Invalide Value\n");
-			break;
+			return AUDIO_CAPTURE_RET_ERROR_IO;
 		case ALC_OUT_OF_MEMORY:
 			printf("Out of memory\n");
-			break;
+			return AUDIO_CAPTURE_RET_ERROR_IO;
 		default:
 			printf("Unkown error\n");
+			return AUDIO_CAPTURE_RET_ERROR_FATAL;
 		}
     }
 
@@ -150,7 +158,7 @@ AUDIO_CAPTURE_RET audiocapture_init(handle_data_callback_t handler)
 	fftw_complex *out;
 	double value;
 	int i;
-	double* fft_in = (double*) fftw_malloc(sizeof(double)*SAMPLES);
+	double* fft_in = (double*) fftw_malloc(sizeof(double) * SAMPLES);
 	double* compressed = (double*) malloc(sizeof(double) * COMPRESSED_SIZE);
 
 	out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex)*SAMPLES/2+1);
