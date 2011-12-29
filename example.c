@@ -1,13 +1,20 @@
-#include <AL/al.h>
-#include <AL/alc.h>
-#include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
-#include <inttypes.h>
-#include <fftw3.h>
 #include <unistd.h>
+#include <stdint.h>
+#include <inttypes.h>
 #define _USE_MATH_DEFINES
 #include <math.h>
+#include <AL/al.h>
+#include <AL/alc.h>
+#include <fftw3.h>
+
+/* handle c99 fuckups */
+#ifndef M_PI
+#define M_PI    3.14159265358979323846f
+#endif
+
+#define TRUE	1
 
 #define SRATE	44100
 #define BSIZE	22050	/* Buffer size */
@@ -114,6 +121,7 @@ int main(int argc, char *argv[]) {
 	/* prepare everything for the FFT */
 	fftw_complex *out;
 	double value;
+	int i;
 	double* fft_in = (double*) fftw_malloc(sizeof(double)*SAMPLES);
 	double* compressed = (double*) malloc(sizeof(double) * COMPRESSED_SIZE);
 
@@ -132,7 +140,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	/* -------------------------- ncurses -------------------------- */	
-	while(true) {
+	while(TRUE) {
 		alcGetIntegerv(device, ALC_CAPTURE_SAMPLES, (ALCsizei)sizeof(ALint), &sample);
 		printf("\rSample amount: %d\tAim:%d", sample, SAMPLES);
 		
@@ -141,7 +149,7 @@ int main(int argc, char *argv[]) {
 			alcCaptureSamples(device, (ALCvoid *)buffer, SAMPLES);
 			printf("\nThere was some data found:\n");
 			
-		   	for(int i=0; i < SAMPLES; i++) {
+		   	for (i=0; i < SAMPLES; i++) {
 				fprintf (fp, "%llu\t%d\n", counter++, pBuffer16[i]);
 
 				/* store the value in the inbuffer */
@@ -157,7 +165,7 @@ int main(int argc, char *argv[]) {
 			convertData ((double*)out, compressed); 
 			printf("The compressed size is %d (compressing %d), the orignal was %d\n", COMPRESSED_SIZE, COMPRESSION_FACTOR, SAMPLES);
 			
-			for(int i=0; i < COMPRESSED_SIZE; i++) {
+			for(i=0; i < COMPRESSED_SIZE; i++) {
 				printf("%lf\n", compressed[i]);
 			}
 			
