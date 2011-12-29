@@ -161,8 +161,9 @@ int main(int argc, char *argv[]) {
 				fprintf (fp, "%ld\t%d\n", counter++, pBuffer16[i]);
 
 				/* store the value in the inbuffer */
+				value = ((double) pBuffer16[i]);
 
-				value = ((double) pBuffer16[i]) ;
+			    /* use the table for fading in and out */
 				fft_in[i] = value * windowLookup[i];
 
 			}
