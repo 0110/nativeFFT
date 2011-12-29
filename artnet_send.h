@@ -3,13 +3,12 @@
 
 #include <arpa/inet.h>
 #include <netinet/in.h>
-#include <stdio.h>
 #include <sys/types.h>
 #include <sys/socket.h>
-#include <uintstd.h>
+#include <unistd.h>
 #include <stdint.h>
 
-#define ARTNET_PORT 1234
+#define ARTNET_PORT 6454
 
 typedef struct {
 	uint8_t data[512];
@@ -21,10 +20,10 @@ typedef struct {
 	struct sockaddr_in serverAddress; 
 } artnet_send_t;
 
-artnet_send_t artnet_send_create(char* host, uint8_t universe, uint16_t length);
+artnet_send_t* artnet_send_create(char* host, uint8_t universe, uint16_t length);
 
-void artnet_send_deinit(artnet_send_t *ptr);
+void artnet_send_deinit(artnet_send_t* descriptor);
 
-void artnet_send_send(artnet_send_t artnet_struct);
+void artnet_send_send(artnet_send_t* descriptor);
 
 #endif
