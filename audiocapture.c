@@ -29,6 +29,8 @@
 #include <AL/alc.h>
 #include <fftw3.h>
 
+/************************** Defines *******************************************/
+
 /* handle c99 fuckups */
 #ifndef M_PI
 #define M_PI    3.14159265358979323846f
@@ -43,9 +45,13 @@
 #define COMPRESSION_FACTOR 10
 #define COMPRESSED_SIZE ((SAMPLES / COMPRESSION_FACTOR) + 1)
 
-ALbyte buffer[BSIZE];
-ALint sample;
 
+/********************* Local variables ****************************************/
+
+static ALbyte buffer[BSIZE];
+static ALint sample;
+
+/********************* Local functions ****************************************/
 
 static double max(double a, double b)
 {
@@ -98,7 +104,7 @@ void convertData(double *plainFFT, double *compressed)
 }
 
 
-AUDIO_CAPTURE_RET audiocapture_init()
+AUDIO_CAPTURE_RET audiocapture_init(handle_data_callback_t handler)
 {
 	// retrieve all old errors
 	alGetError();

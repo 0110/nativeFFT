@@ -4,9 +4,15 @@
 #include "audiocapture.h"
 #include <stdio.h>
 
+
+void handleIncomeingSample(const double* array, const int length)
+{
+
+}
+
 int main(int argc, char *argv[]) {
-	
-	AUDIO_CAPTURE_RET ret = audiocapture_init();
+
+	AUDIO_CAPTURE_RET ret = audiocapture_init(&handleIncomeingSample);
 	if (AUDIO_CAPTURE_RET_OK != ret)
 	{
 		printf("There was an error while initing the capturing device\n");
