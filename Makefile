@@ -3,7 +3,7 @@ CC=gcc
 TARGET = example
 CFLAGS = -Wall
 #DEPS = hellomake.h
-LDFLAGS = -lm -I.
+LDFLAGS = -lm -I. -lncurses
 OBJ = example.o\
 	artnet_send.o
 	
