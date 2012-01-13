@@ -3,9 +3,8 @@ CC=gcc
 TARGET = example
 CFLAGS = -Wall
 #DEPS = hellomake.h
-LDFLAGS = -lopenal -lfftw3 -lm -lncurses -I.
+LDFLAGS = -lm -I.
 OBJ = example.o\
-	audiocapture.o\
 	artnet_send.o
 	
 _all: all
